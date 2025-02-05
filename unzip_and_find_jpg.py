@@ -1,25 +1,39 @@
 import os
 import zipfile
-import sys
+import requests
 import time
 import shutil
 
-# Define paths
-zip_path = r"folder\path"
-extract_folder = r"folder\path"
+# Define URLs and paths
+url = "https://upload.itcollege.ee/~aleksei/random_files_without_extension.zip"
+download_path = r"C:\Users\marko\Downloads\random_files_without_extension.zip"
+extract_folder = r"C:\Users\marko\Downloads\random_files_without_extension"
 
 
-# Step 1: Unzip the archive
+# Step 1: Download the ZIP file
+def download_zip(url, save_path):
+    print(f"📥 Laen alla ZIP faili: {url}")
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        with open(save_path, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=1024):
+                file.write(chunk)
+        print(f"✅ ZIP fail alla laetud: {save_path}")
+    else:
+        print(f"❌ Viga allalaadimisel: {response.status_code}")
+
+
+# Step 2: Extract the ZIP file
 def unzip_file(zip_path, extract_folder):
-    if not os.path.exists(extract_folder):  # Create the folder if it doesn't exist
+    if not os.path.exists(extract_folder):
         os.makedirs(extract_folder)
 
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(extract_folder)
-    print(f"✅ ZIP fail on lahti pakitud: {extract_folder}")
+    print(f"✅ ZIP fail lahti pakitud: {extract_folder}")
 
 
-# Step 2: Find and delete non-JPG files
+# Step 3: Find and delete non-JPG files
 def clean_non_jpg(folder):
     for entry in os.scandir(folder):
         if entry.is_file():
@@ -43,10 +57,8 @@ def clean_non_jpg(folder):
                 print(f"❗ Viga {entry.path}: {e}")
 
 
-# Step 3: Execute the functions
+# Step 4: Execute the script
 if __name__ == "__main__":
-    if os.path.exists(zip_path):
-        unzip_file(zip_path, extract_folder)
-        clean_non_jpg(extract_folder)
-    else:
-        print(f"❌ ZIP faili ei leitud: {zip_path}")
+    download_zip(url, download_path)
+    unzip_file(download_path, extract_folder)
+    clean_non_jpg(extract_folder)
